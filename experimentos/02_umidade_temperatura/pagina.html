@@ -1,0 +1,123 @@
+<h1>Temperatura e umidade: laboratório × cabine</h1>
+<p class="lead">Dois registradores gravaram, minuto a minuto, a temperatura e a umidade relativa do laboratório (LAB) e do
+interior da cabine (PRO) em quatro regimes do ar-condicionado. A pergunta central é quanto da oscilação imposta pelo
+ciclo do compressor chega ao interior da cabine.</p>
+
+<section>
+<h2>Desenho experimental</h2>
+<dl class="ficha">
+  <div><dt>Registradores</dt><dd>LAB no laboratório; PRO dentro da cabine. Uma amostra por minuto, de {{val:periodo}}.</dd></div>
+  <div><dt>Janelas</dt><dd>48 h ({{val:n_jan}} amostras pareadas por horário), sempre a partir das 19:00:
+    <span class="sigla">SAR</span> sem ar-condicionado · <span class="sigla">DRY</span> modo DRY ·
+    <span class="sigla">COL</span> modo COOL · <span class="sigla">AR</span> ligado, modo não definido.</dd></div>
+  <div><dt>Integridade</dt><dd>{{val:integridade}}</dd></div>
+</dl>
+
+{{fig:visao_geral|Registros completos dos dois registradores, com as quatro janelas analisadas.}}
+
+<p class="aviso">A partir de cerca de 09/06, a umidade dentro da cabine cai de ~70% para ~51% e permanece nesse nível, enquanto
+a do laboratório sobe e passa a oscilar mais. A mudança coincide com o fim da lacuna do registrador LAB, e sua causa não está
+registrada nos arquivos. A janela <span class="sigla">COL</span> fica depois dessa mudança, o que afeta a comparação de nível
+(não a de oscilação) nesse cenário.</p>
+</section>
+
+<section>
+<h2>O compressor injeta oscilação de umidade — e a cabine a remove</h2>
+<p>A medida usada é o <strong>RMS da oscilação na banda de {{val:banda}}</strong>: a raiz da potência espectral integrada nessa
+faixa de períodos, onde está o ciclo do compressor. Diferentemente do desvio-padrão, ele não é inflado pelas variações lentas
+do dia, e mede diretamente a oscilação que o ar-condicionado impõe.</p>
+
+{{fig:banda_resumo|RMS da oscilação na banda de {{val:banda}}, por cenário (escala logarítmica).}}
+
+<p>Sem ar-condicionado, a oscilação de UR no laboratório nessa banda é de {{val:ur_rms_sar}} pontos percentuais. Com o
+compressor em DRY, ela sobe para {{val:ur_rms_dry}} pontos (<strong>{{val:ur_x_dry}} vezes</strong>); em COOL, para
+{{val:ur_rms_col}} ({{val:ur_x_col}} vezes); no regime não definido, para {{val:ur_rms_ar}}.</p>
+
+<p>Dentro da cabine, essa oscilação é reduzida em <strong>{{val:ur_aten_dry}}%</strong> no DRY, {{val:ur_aten_col}}% no COOL e
+{{val:ur_aten_ar}}% no regime não definido. Sem ar-condicionado a redução é de {{val:ur_aten_sar}}%, porque quase não há
+oscilação a remover. Em todos os regimes com ar, o RMS da UR dentro da cabine ({{val:ur_rms_pro_min}}–{{val:ur_rms_pro_max}}) fica
+no mesmo nível da oscilação do próprio laboratório sem ar-condicionado ({{val:ur_rms_sar}}).</p>
+
+<p>Para a temperatura, a atenuação é menor: {{val:t_aten_dry}}% no DRY, {{val:t_aten_col}}% no COOL, {{val:t_aten_ar}}% no
+regime não definido e {{val:t_aten_sar}}% sem ar. O registrador tem resolução de 0,1 °C, da mesma ordem das oscilações
+medidas dentro da cabine; parte do RMS restante é a própria quantização.</p>
+
+<p><strong>Período do ciclo.</strong> Pela autocorrelação da UR no laboratório, o ciclo rápido do compressor dura cerca de
+{{val:ciclo_dry}} min no DRY, {{val:ciclo_col}} min no COOL e {{val:ciclo_ar}} min no regime não definido. No DRY, o pico da
+densidade espectral fica em {{val:pico_dry}} min: os ciclos rápidos aparecem em rajadas, moduladas por uma oscilação mais lenta
+(visível na série do cenário DRY, abaixo). A densidade espectral é larga, sem uma linha única.</p>
+
+{{tab:estabilidade}}
+
+<h3>COOL × DRY</h3>
+<p>As duas janelas foram registradas em datas diferentes, sob tempo externo diferente: a comparação é descritiva, não
+pareada. Na banda do compressor, os dois modos impõem oscilação de UR semelhante no laboratório ({{val:ur_rms_dry}} pontos no
+DRY, {{val:ur_rms_col}} no COOL) e de temperatura também semelhante ({{val:dry_T_rms}} °C e {{val:col_T_rms}} °C). O
+desvio-padrão total da temperatura no laboratório é maior no COOL ({{val:col_T_lab}} °C contra {{val:dry_T_lab}} °C), mas
+essa diferença vem das variações lentas, ao longo do dia, e não do ciclo do compressor.</p>
+</section>
+
+<section>
+<h2>Séries e espectros por cenário</h2>
+<h3><span class="sigla">SAR</span> Sem ar-condicionado</h3>
+{{fig:serie_SAR|Sem ar-condicionado: LAB e PRO ao longo das 48 h.}}
+{{fig:espectro_SAR|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
+
+<h3><span class="sigla">DRY</span> Modo DRY</h3>
+{{fig:serie_DRY|Modo DRY: ciclos rápidos de umidade no laboratório, em rajadas; a cabine permanece praticamente estável.}}
+{{fig:espectro_DRY|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
+
+<h3><span class="sigla">COL</span> Modo COOL</h3>
+{{fig:serie_COL|Modo COOL: ciclos regulares de umidade no laboratório. O nível mais baixo de UR na cabine é posterior à mudança de 09/06.}}
+{{fig:espectro_COL|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
+
+<h3><span class="sigla">AR</span> Ligado, modo não definido</h3>
+{{fig:serie_AR|Ar-condicionado ligado em modo não definido.}}
+{{fig:espectro_AR|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
+</section>
+
+<section>
+<h2>Nível e dispersão: testes pareados</h2>
+<p>Para cada minuto, compara-se a leitura do PRO com a do LAB. Os testes rejeitam a igualdade de nível em todos os cenários,
+mas há uma ressalva central: minutos consecutivos não são independentes. A autocorrelação de lag 1 das diferenças fica entre
+{{val:rho_min}} e {{val:rho_max}}, e o número efetivo de observações independentes cai de {{val:n_jan}} para {{val:n_ef_min}}–{{val:n_ef_max}}. Por
+isso, a tabela traz o p nominal e o p ajustado, e a interpretação se apoia nos tamanhos de efeito.</p>
+
+{{tab:nivel}}
+
+<p>As diferenças de nível entre PRO e LAB não são atribuídas à cabine: incluem uma eventual diferença de calibração entre os
+dois registradores, que não foi medida lado a lado, e, no COOL, a mudança de condição da cabine a partir de 09/06 (mediana PRO −
+LAB de {{val:col_dif_ur}} pontos de UR). Na janela SAR, as duas curvas de UR se encontram e coincidem por várias horas, o que
+sugere diferença de calibração pequena — mas não substitui a verificação. O teste de Levene (Brown–Forsythe) também não é
+ajustado para autocorrelação; a medida de estabilidade adotada é a atenuação espectral da seção anterior.</p>
+
+<h3>Normalidade</h3>
+<p>Todas as séries rejeitam a normalidade, o que justifica os testes não paramétricos. Com a autocorrelação observada, porém, a
+questão principal deixa de ser a forma da distribuição e passa a ser a dependência entre observações.</p>
+{{tab:normalidade}}
+</section>
+
+<section>
+<h2>O que mudou em relação à análise anterior (R)</h2>
+<ul>
+  <li><strong>Tamanho de efeito r.</strong> O script anterior obtinha z a partir do p (<code>qnorm(p/2)</code>); quando o p chegava
+  a zero numérico, r saía como ±∞ em quatro dos cinco resumos. Agora z vem diretamente da estatística V, e a página traz também
+  a correlação rank-bisserial.</li>
+  <li><strong>COOL × DRY.</strong> A comparação anterior pareava os dois cenários minuto a minuto, embora tenham sido registrados
+  em datas diferentes. Foi substituída pela comparação descritiva e espectral acima.</li>
+  <li><strong>Autocorrelação.</strong> Os p-valores agora vêm acompanhados do n efetivo e da versão ajustada.</li>
+  <li><strong>Reprodutibilidade.</strong> As janelas são recortadas dos dados brutos pelo próprio script, com verificação minuto
+  a minuto. Os valores de V, do p de Levene e do W de Shapiro–Wilk coincidem com os do R.</li>
+</ul>
+</section>
+
+<section>
+<h2>Limitações</h2>
+<ul>
+  <li>Sem medição dos dois registradores lado a lado: diferenças de nível entre LAB e PRO incluem a calibração relativa.</li>
+  <li>A mudança na UR da cabine a partir de 09/06 não tem causa registrada.</li>
+  <li>A banda do compressor ({{val:banda}}) e o segmento do Welch ({{val:nseg}} min) são escolhas configuráveis no início de
+  <code>analise.m</code>.</li>
+  <li>O n efetivo usa a aproximação AR(1); para séries com oscilação periódica, o valor é apenas indicativo.</li>
+</ul>
+</section>

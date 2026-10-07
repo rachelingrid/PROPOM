@@ -1,0 +1,52 @@
+# Roda todas as análises no GNU Octave e publica a página no GitHub Pages.
+# Dispara a cada envio para a branch main, ou manualmente em Actions -> "Análises ProPOM" -> Run workflow.
+name: Análises ProPOM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  analises:
+    name: Rodar o Octave e gerar a página
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar o GNU Octave
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends octave fonts-dejavu-core fonts-freefont-otf xvfb xauth
+          octave-cli --version | head -1
+
+      - name: Rodar as análises
+        run: |
+          xvfb-run -a octave --no-gui --eval "executar_tudo"
+          test -f site/index.html
+
+      - name: Preparar a página
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  publicar:
+    name: Publicar no GitHub Pages
+    needs: analises
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - id: publicacao
+        uses: actions/deploy-pages@v4

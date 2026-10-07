@@ -1,0 +1,95 @@
+<h1>Deriva térmica do termógrafo na cabine</h1>
+<p class="lead">Com a cabine fechada e nenhuma fonte de radiação infravermelha, a cena não muda — qualquer variação
+lida pela câmera vem do próprio equipamento ou do ambiente. Este experimento mede essa variação e mostra, num segundo
+lote, como um evento climático alterou a leitura de uma emissão externa.</p>
+
+<section>
+<h2>Desenho experimental</h2>
+<p>Termógrafo UNI-T UTi320E (microbolômetro não refrigerado, 320×240 px) instalado dentro da cabine ProPOM, apontado para
+o interior. Cada quadro radiométrico foi exportado como matriz de temperaturas em CSV e reduzido pelo script
+<code>AMT.m</code> a sete estatísticas por quadro: máxima, mínima, média, mediana, desvio-padrão, variância e amplitude.</p>
+<dl class="ficha">
+  <div><dt>Lote 1</dt><dd>Cabine aclimatada, sem emissão de IR. {{val:n1}} quadros (arquivos {{val:q1_ini}} a {{val:q1_fim}}).</dd></div>
+  <div><dt>Lote 2</dt><dd>Emissão de IR na face externa da cabine, a 7 cm da parede. Durante a aquisição, um evento climático
+  (tempestade) atingiu a universidade; o ar-condicionado do laboratório permaneceu ligado em modo DRY. {{val:n2}} quadros
+  (arquivos {{val:q2_ini}} a {{val:q2_fim}}). Foi um dos primeiros ensaios com a cabine.</dd></div>
+</dl>
+<p class="aviso">{{val:unidade_tempo}}</p>
+</section>
+
+<section>
+<h2>Lote 1 — sem emissão de IR</h2>
+{{fig:lote1_series|Estatísticas de cada quadro ao longo do lote 1. A linha tracejada é a exponencial simples ajustada à temperatura média.}}
+
+<p>A temperatura média caiu <strong>{{val:d_tmed}} °C</strong> entre os {{val:nb}} primeiros e os {{val:nb}} últimos quadros.
+A máxima variou {{val:d_tmax}} °C e a mínima {{val:d_tmin}} °C: o quadro inteiro se deslocou de forma quase uniforme, enquanto
+a distribuição espacial mudou pouco (tabela de dispersão abaixo). Um deslocamento global com a cena inalterada é o
+comportamento esperado de deriva do sensor de um microbolômetro não refrigerado, e não de uma mudança real de temperatura
+no interior da cabine — atribuição que pressupõe o ambiente estável durante o lote, o que não foi registrado (ver Limitações).</p>
+
+{{tab:lote1}}
+
+<p>A deriva não segue uma única curva de acomodação. Há uma queda brusca de {{val:queda3}} °C nos três primeiros quadros,
+um patamar, uma segunda queda e uma desaceleração. A exponencial simples explica R² = {{val:exp_r2}} da variância (a reta,
+{{val:lin_r2}}), mas deixa resíduos estruturados, com autocorrelação de {{val:exp_rho}}: o modelo não captura a forma em
+etapas, e por isso sua constante de tempo não é tratada aqui como parâmetro físico do equipamento.</p>
+
+<p>Nos quadros {{val:fin_ini}}–{{val:fin_fim}}, a inclinação da média caiu para {{val:fin_b}} °C/quadro
+(IC 95% {{val:fin_ic}}), cerca de um quarto da inclinação do lote inteiro. O intervalo não inclui zero: <strong>a deriva
+desacelerou, mas não cessou</strong> dentro do lote. Para definir um tempo mínimo de aquecimento da câmera antes das
+coletas, seria necessária uma série mais longa, até a inclinação se tornar indistinguível de zero.</p>
+
+{{fig:lote1_residuos|Acima: diferença entre a temperatura média e a exponencial ajustada — o padrão em ondas indica a estrutura que o modelo não captura. Abaixo: desvio-padrão espacial dentro de cada quadro.}}
+
+{{tab:dispersao_lote1}}
+</section>
+
+<section>
+<h2>Lote 2 — emissão externa e evento climático</h2>
+{{fig:lote2_series|Estatísticas de cada quadro ao longo do lote 2, com as três fases sombreadas.}}
+
+<p><strong>Aquecimento.</strong> Nos primeiros quadros, a parede aquecida pela emissão externa aparece como uma região quente
+crescente: a amplitude dentro do quadro sobe de {{val:aq_amp}} °C.</p>
+
+<p><strong>Patamar.</strong> O contraste se estabiliza, mas a temperatura média continua subindo ({{val:pat_subida}} °C ao longo
+do patamar), indicando aquecimento geral da cabine ou do ambiente, que não foi registrado.</p>
+
+<p><strong>Perturbação.</strong> Com o evento climático, o contraste espacial cai. Para não misturar essa queda com a subida do
+patamar, a comparação usa os 10 quadros imediatamente anteriores à perturbação e os 10 finais do lote:</p>
+
+{{tab:antes_depois}}
+
+<p>A amplitude caiu {{val:dd_amp}} °C ({{val:dd_amp_pct}}%) e o desvio-padrão espacial {{val:dd_dp}} °C ({{val:dd_dp_pct}}%).
+A queda veio da <strong>região aquecida</strong> (máxima {{val:dd_tmax}} °C), enquanto a região fria ficou estável
+(mínima {{val:dd_tmin}} °C). A perda de contraste está concentrada na área aquecida pela emissão, e não distribuída pela
+cabine como um todo.</p>
+
+<div class="hipotese">
+<h3>Hipótese de trabalho</h3>
+<p>Resfriamento convectivo da face externa da parede onde incidia a emissão: rajadas e ar externo muito úmido aumentam a
+troca de calor naquela superfície, e o gradiente que chega à face interna diminui. O efeito seria maior nos intervalos em
+que o compressor do ar-condicionado desliga, quando a umidade do ambiente sobe. A absorção do infravermelho pelo vapor
+d'água num percurso de 7 cm é pequena e, sozinha, não explica a queda.</p>
+<p>Como o ar-condicionado estava em modo DRY, a oscilação imposta pelo ciclo do compressor
+(<a href="../02_umidade_temperatura/index.html">Experimento 02</a>) pode estar somada ao efeito climático neste lote. Os dois
+efeitos não são separáveis com estes dados — e foi essa dúvida que motivou o experimento seguinte.</p>
+</div>
+
+{{fig:lote2_contraste|Desvio-padrão e amplitude dentro de cada quadro no lote 2. A queda a partir do quadro 663 coincide com o evento climático.}}
+
+{{tab:fases_lote2}}
+</section>
+
+<section>
+<h2>Limitações</h2>
+<ul>
+  <li>Temperatura e umidade do ambiente não foram registradas quadro a quadro: os valores do CSV (25 °C, 60%) foram
+  digitados uma vez por lote. Isso impede separar, no lote 1, a deriva do equipamento de uma eventual variação do ambiente,
+  e, no lote 2, quantificar o evento climático.</li>
+  <li>O intervalo entre quadros não está registrado nos arquivos; as taxas estão em °C por quadro.</li>
+  <li>As fases do lote 2 e as janelas de comparação foram definidas por inspeção visual (configuráveis no início de
+  <code>analise.m</code>).</li>
+  <li>Quadros consecutivos são fortemente autocorrelacionados. Os intervalos de confiança usam o n efetivo (aproximação AR(1));
+  testes de hipótese entre lotes não foram aplicados, porque as condições dos lotes são diferentes por desenho.</li>
+</ul>
+</section>
