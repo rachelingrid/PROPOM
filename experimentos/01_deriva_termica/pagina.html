@@ -9,10 +9,19 @@ lote, como um evento climático alterou a leitura de uma emissão externa.</p>
 o interior. Cada quadro radiométrico foi exportado como matriz de temperaturas em CSV e reduzido pelo script
 <code>AMT.m</code> a sete estatísticas por quadro: máxima, mínima, média, mediana, desvio-padrão, variância e amplitude.</p>
 <dl class="ficha">
-  <div><dt>Lote 1</dt><dd>Cabine aclimatada, sem emissão de IR. {{val:n1}} quadros (arquivos {{val:q1_ini}} a {{val:q1_fim}}).</dd></div>
-  <div><dt>Lote 2</dt><dd>Emissão de IR na face externa da cabine, a 7 cm da parede. Durante a aquisição, um evento climático
-  (tempestade) atingiu a universidade; o ar-condicionado do laboratório permaneceu ligado em modo DRY. {{val:n2}} quadros
-  (arquivos {{val:q2_ini}} a {{val:q2_fim}}). Foi um dos primeiros ensaios com a cabine.</dd></div>
+  <div><dt>Data e local</dt><dd>{{val:data}}, Sala 109 do NTIEB — PEB/COPPE/UFRJ (≈192 m³), ar-condicionado de 12.000 BTU
+  ajustado para 18 °C.</dd></div>
+  <div><dt>Cabine</dt><dd>Cubo de ≈50 cm (tubos de PVC, manta térmica aluminizada e isopor de 30 mm). Nesta fase, o
+  revestimento interno de veludo preto foi omitido de propósito, para avaliar a resposta bruta à radiação refletida.
+  Distância foco-objeto de 30 cm.</dd></div>
+  <div><dt>Ambiente</dt><dd>Termo-higrômetro digital (Exbom FEPRO-MUT600S) fora da cabine: 22,5 °C e UR de 64% às 17:45. Não
+  havia sensor dentro da cabine. Na sala, 1.620 g de cal hidratada ao redor da cabine, numa tentativa de reduzir a UR que não
+  teve efeito (UR entre 63 e 64%).</dd></div>
+  <div><dt>Lote 1</dt><dd>Cabine aclimatada, sem emissão de IR. Início às {{val:l1_hora}}. {{val:n1}} quadros (arquivos
+  {{val:q1_ini}} a {{val:q1_fim}}), {{val:dur1}} min.</dd></div>
+  <div><dt>Lote 2</dt><dd>Lâmpada infravermelha (≈130 °C) na lateral externa da cabine, a 7 cm da parede. Durante a aquisição,
+  um evento climático (tempestade) atingiu a universidade; o ar-condicionado permaneceu ligado em modo DRY. {{val:n2}} quadros
+  (arquivos {{val:q2_ini}} a {{val:q2_fim}}), {{val:dur2}} min. Foi um dos primeiros ensaios com a cabine.</dd></div>
 </dl>
 <p class="aviso">{{val:unidade_tempo}}</p>
 </section>
@@ -21,11 +30,21 @@ o interior. Cada quadro radiométrico foi exportado como matriz de temperaturas 
 <h2>Lote 1 — sem emissão de IR</h2>
 {{fig:lote1_series|Estatísticas de cada quadro ao longo do lote 1. A linha tracejada é a exponencial simples ajustada à temperatura média.}}
 
-<p>A temperatura média caiu <strong>{{val:d_tmed}} °C</strong> entre os {{val:nb}} primeiros e os {{val:nb}} últimos quadros.
+<p>A temperatura média variou <strong>{{val:d_tmed}} °C</strong> entre os {{val:nb}} primeiros e os {{val:nb}} últimos quadros.
 A máxima variou {{val:d_tmax}} °C e a mínima {{val:d_tmin}} °C: o quadro inteiro se deslocou de forma quase uniforme, enquanto
-a distribuição espacial mudou pouco (tabela de dispersão abaixo). Um deslocamento global com a cena inalterada é o
-comportamento esperado de deriva do sensor de um microbolômetro não refrigerado, e não de uma mudança real de temperatura
-no interior da cabine — atribuição que pressupõe o ambiente estável durante o lote, o que não foi registrado (ver Limitações).</p>
+a distribuição espacial mudou pouco (tabela de dispersão abaixo).</p>
+
+<div class="hipotese">
+<h3>Duas explicações possíveis</h3>
+<p><strong>Deriva do equipamento.</strong> Um deslocamento global, com a cena inalterada, é o comportamento típico de um
+microbolômetro não refrigerado enquanto o sensor ainda se acomoda termicamente.</p>
+<p><strong>Resfriamento real da cabine.</strong> A sala estava com o ar-condicionado ajustado para 18 °C, e o termo-higrômetro
+externo marcava 22,5 °C no início. As paredes internas podem ter de fato esfriado em direção à temperatura da sala, e a
+câmera teria registrado corretamente esse resfriamento.</p>
+<p>Os dois efeitos produzem a mesma assinatura nos dados: queda uniforme de máxima, média e mínima. Sem uma referência de
+temperatura dentro da cabine (termopar de contato na parede, ou um corpo de referência com temperatura conhecida no campo de
+visão), não é possível separá-los.</p>
+</div>
 
 {{tab:lote1}}
 
@@ -34,10 +53,21 @@ um patamar, uma segunda queda e uma desaceleração. A exponencial simples expli
 {{val:lin_r2}}), mas deixa resíduos estruturados, com autocorrelação de {{val:exp_rho}}: o modelo não captura a forma em
 etapas, e por isso sua constante de tempo não é tratada aqui como parâmetro físico do equipamento.</p>
 
-<p>Nos quadros {{val:fin_ini}}–{{val:fin_fim}}, a inclinação da média caiu para {{val:fin_b}} °C/quadro
-(IC 95% {{val:fin_ic}}), cerca de um quarto da inclinação do lote inteiro. O intervalo não inclui zero: <strong>a deriva
-desacelerou, mas não cessou</strong> dentro do lote. Para definir um tempo mínimo de aquecimento da câmera antes das
-coletas, seria necessária uma série mais longa, até a inclinação se tornar indistinguível de zero.</p>
+<p>Nos quadros {{val:fin_ini}}–{{val:fin_fim}} (os últimos ~30 min), a inclinação da média caiu para {{val:fin_b}} °C/{{val:un}}
+(IC 95% {{val:fin_ic}}), ou {{val:fin_b_h}} °C/h, cerca de um quarto da inclinação do lote inteiro. O intervalo não inclui
+zero: <strong>a deriva desacelerou, mas não cessou</strong> dentro do lote. Nesse trecho, a temperatura média variou entre
+{{val:fin_min}} e {{val:fin_max}} °C (amplitude de {{val:fin_amp}} °C), com desvio-padrão temporal de {{val:fin_dp}} °C e
+dispersão de {{val:fin_dpres}} °C em torno da reta.</p>
+
+<p>Para o protocolo de coleta, o número relevante é a deriva dentro de uma aquisição. Com a inclinação do trecho final, uma
+aquisição de {{val:pop_min}} min (5 imagens a intervalos de 1 min) acumula cerca de <strong>{{val:pop_deriva}} °C</strong> de
+deriva, abaixo da variação fisiológica de interesse (0,1 °C). Isso vale desde que a câmera tenha passado pelo mesmo tempo de
+funcionamento prévio. Para definir esse tempo mínimo, seria necessária uma série mais longa, até a inclinação se tornar
+indistinguível de zero.</p>
+
+<p>Atenção a uma distinção: a variância da coluna "Variância" do CSV (≈{{val:var_esp}} °C² no trecho final) é a variância
+<em>espacial</em> entre os pixels de cada quadro, ou seja, a heterogeneidade da cena. Ela não mede estabilidade no tempo.
+A estabilidade temporal é dada pela inclinação e pelo desvio-padrão da média ao longo dos quadros, acima.</p>
 
 {{fig:lote1_residuos|Acima: diferença entre a temperatura média e a exponencial ajustada — o padrão em ondas indica a estrutura que o modelo não captura. Abaixo: desvio-padrão espacial dentro de cada quadro.}}
 
@@ -83,10 +113,12 @@ efeitos não são separáveis com estes dados — e foi essa dúvida que motivou
 <section>
 <h2>Limitações</h2>
 <ul>
-  <li>Temperatura e umidade do ambiente não foram registradas quadro a quadro: os valores do CSV (25 °C, 60%) foram
-  digitados uma vez por lote. Isso impede separar, no lote 1, a deriva do equipamento de uma eventual variação do ambiente,
-  e, no lote 2, quantificar o evento climático.</li>
-  <li>O intervalo entre quadros não está registrado nos arquivos; as taxas estão em °C por quadro.</li>
+  <li>Temperatura e umidade não foram registradas quadro a quadro, e o único termo-higrômetro estava fora da cabine. As
+  colunas de data, UR e temperatura do CSV ("25/01/2026", 60%, 25 °C) são valores digitados no <code>AMT.m</code>, e não
+  medições; a data correta é {{val:data}}. Sem referência dentro da cabine, não é possível separar, no lote 1, a deriva do
+  equipamento do resfriamento real da cabine, nem quantificar, no lote 2, o evento climático.</li>
+  <li>A hora de cada quadro não está nos arquivos: o tempo é reconstruído pelo intervalo programado do time-lapse (60 s) e
+  pela numeração sequencial. Um quadro perdido deslocaria a escala de tempo sem deixar rastro.</li>
   <li>As fases do lote 2 e as janelas de comparação foram definidas por inspeção visual (configuráveis no início de
   <code>analise.m</code>).</li>
   <li>Quadros consecutivos são fortemente autocorrelacionados. Os intervalos de confiança usam o n efetivo (aproximação AR(1));
