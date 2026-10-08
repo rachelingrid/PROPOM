@@ -9,7 +9,12 @@
 %           aquisição, evento climático (tempestade), com o ar-condicionado em DRY.
 
 % ============================ CONFIGURAÇÃO ================================
-cfg.dt_min  = NaN;   % intervalo entre quadros, em minutos (NaN = ainda não informado)
+cfg.dt_min  = 1;     % intervalo entre quadros, em minutos: time-lapse programado a cada 60 s
+                     % (relatório técnico-experimental e qualificação, seção 10.4)
+cfg.data    = '25/07/2025';   % data da coleta (nome dos arquivos e relatório; o "25/01/2026" do CSV
+                              % é um valor digitado no AMT.m)
+cfg.l1_hora = '17:40';        % início da janela do lote 1 (qualificação, seção 10.4)
+cfg.janela_pop_min = 5;       % duração de uma aquisição no POP (5 imagens a 1 min)
 cfg.n_borda = 5;     % quadros médios no início e no fim para medir a variação total
 
 % Lote 1: trecho final usado para verificar se a deriva cessou (quadros)
@@ -25,9 +30,13 @@ cfg.depois = [684 693];   % 10 quadros finais do lote
 % ==========================================================================
 
 C = cores_propom();
+if isnan(cfg.dt_min), dt = 1; un = 'quadro'; else, dt = cfg.dt_min; un = 'min'; end
 L1 = ler_lote(fullfile('dados', 'analise_lote_1.csv'));
 L2 = ler_lote(fullfile('dados', 'analise_lote_2.csv'));
 nb = cfg.n_borda;
+
+rot_quadro = 'Quadro (número do arquivo)';
+if ~isnan(cfg.dt_min), rot_quadro = sprintf('Quadro (número do arquivo; 1 quadro = %s min)', fmt(dt, 0)); end
 
 % ======================================================= LOTE 1 ==========
 vars = {'tmax', 'tmed', 'tmin', 'tmediana'};
@@ -38,8 +47,8 @@ csv = zeros(numel(vars), 11);
 for k = 1:numel(vars)
   y = L1.(vars{k});
   ini = mean(y(1:nb));  fim = mean(y(end-nb+1:end));
-  T  = tendencia_linear(L1.quadro, y);
-  Tf = tendencia_linear(L1.quadro(mf), y(mf));
+  T  = tendencia_linear(L1.quadro * dt, y);
+  Tf = tendencia_linear(L1.quadro(mf) * dt, y(mf));
   linhas(k, :) = {rot{k}, fmt(ini, 2), fmt(fim, 2), fmt(fim - ini, 2, true), ...
                   [fmt(T.b, 4) ' <span class="ic">[' fmt(T.ic(1), 4) '; ' fmt(T.ic(2), 4) ']</span>'], ...
                   [fmt(Tf.b, 4) ' <span class="ic">[' fmt(Tf.ic(1), 4) '; ' fmt(Tf.ic(2), 4) ']</span>'], ...
@@ -50,16 +59,16 @@ end
 R.tab.lote1 = html_tabela( ...
   {'Temperatura do quadro (°C)', sprintf('Início (%d quadros)', nb), sprintf('Fim (%d quadros)', nb), 'Variação', ...
    'Inclinação no lote [IC 95%]', sprintf('Inclinação nos quadros %d–%d [IC 95%%]', cfg.l1_final), 'Sen no lote'}, ...
-  linhas, ['Inclinações em °C por quadro. IC 95% corrigido para a autocorrelação dos resíduos ' ...
+  linhas, ['Inclinações em °C/' un '. IC 95% corrigido para a autocorrelação dos resíduos ' ...
            '(n efetivo, aproximação AR(1)). Sen = inclinação robusta de Theil–Sen.']);
 escrever_csv(fullfile(pasta_saida, 'lote1_tendencias.csv'), ...
   {'variavel', 'inicio_C', 'fim_C', 'variacao_C', 'incl_lote', 'incl_lote_ic_inf', 'incl_lote_ic_sup', 'sen_lote', ...
    'incl_final', 'incl_final_ic_inf', 'incl_final_ic_sup', 'n_efetivo_lote'}, rot, csv);
 
 % Modelo de acomodação exponencial simples (teste de adequação)
-E = ajuste_exponencial(L1.quadro, L1.tmed);
+E = ajuste_exponencial(L1.quadro * dt, L1.tmed);
 res_exp = L1.tmed - E.yhat;
-R.val.exp_tau  = fmt(E.tau, 1);
+R.val.exp_tau  = [fmt(E.tau, 1) ' ' un];
 R.val.exp_r2   = fmt(E.r2, 2);
 R.val.exp_rho  = fmt(autocorr_lag1(res_exp), 2);
 R.val.lin_r2   = fmt(tend.tmed.r2, 2);
@@ -76,9 +85,20 @@ R.val.fin_fim = sprintf('%d', cfg.l1_final(2));
 R.val.fin_b   = fmt(tfin.tmed.b, 4);
 R.val.fin_ic  = ['[' fmt(tfin.tmed.ic(1), 4) '; ' fmt(tfin.tmed.ic(2), 4) ']'];
 R.val.queda3  = fmt(L1.tmed(3) - L1.tmed(1), 2, true);
+R.val.un      = un;
+R.val.fin_b_h = fmt(tfin.tmed.b * 60 / dt, 2);
+yf = L1.tmed(mf);
+R.val.fin_min = fmt(min(yf), 2);   R.val.fin_max = fmt(max(yf), 2);   R.val.fin_amp = fmt(max(yf) - min(yf), 2);
+R.val.fin_dp  = fmt(std(yf), 3);   R.val.fin_dpres = fmt(tfin.tmed.res_dp, 3);
+R.val.var_esp = fmt(mean(L1.dp(mf).^2), 2);
+R.val.pop_min = sprintf('%d', cfg.janela_pop_min);
+R.val.pop_deriva = fmt(abs(tfin.tmed.b) * cfg.janela_pop_min, 3);
+R.val.dur1 = sprintf('%d', round((L1.quadro(end) - L1.quadro(1)) * dt));
+R.val.dur2 = sprintf('%d', round((L2.quadro(end) - L2.quadro(1)) * dt));
+R.val.data = cfg.data;   R.val.l1_hora = cfg.l1_hora;
 if ~isnan(cfg.dt_min)
-  R.val.unidade_tempo = sprintf(['Intervalo entre quadros: %s min. Em unidades de tempo, a inclinação média ' ...
-                                 'no lote é de %s °C/min.'], fmt(cfg.dt_min, 2), fmt(tend.tmed.b / cfg.dt_min, 4));
+  R.val.unidade_tempo = sprintf(['Time-lapse programado a cada %s s: 1 quadro = %s min. Os arquivos não guardam a hora de ' ...
+                                 'cada quadro; o tempo é reconstruído pela numeração sequencial.'], fmt(60 * dt, 0), fmt(dt, 0));
 else
   R.val.unidade_tempo = ['O intervalo entre quadros ainda não foi registrado nesta versão ' ...
                          '(<code>cfg.dt_min</code> em <code>analise.m</code>); por isso, as inclinações estão em °C por quadro.'];
@@ -103,7 +123,7 @@ hl = [plot(L1.quadro, L1.tmax, 'color', C.lab), plot(L1.quadro, L1.tmed, 'color'
 hold off;
 xlim([L1.quadro(1) L1.quadro(end)]);
 legend(hl, {'Máxima', 'Média', 'Mínima', 'Exponencial ajustada à média'}, 'location', 'northeast', 'box', 'off');
-eixo_estilo(gca, 'Quadro (número do arquivo)', 'Temperatura (°C)', 'Lote 1 — cabine fechada, sem emissão de IR');
+eixo_estilo(gca, rot_quadro, 'Temperatura (°C)', 'Lote 1 — cabine fechada, sem emissão de IR');
 fig_salvar(h, fullfile(pasta_saida, 'lote1_series.png'));
 R.fig.lote1_series = 'lote1_series.png';
 
@@ -117,7 +137,7 @@ eixo_estilo(gca, '', 'Resíduo (°C)', 'Temperatura média menos a exponencial a
 subplot(2, 1, 2);
 plot(L1.quadro, L1.dp, 'color', C.pro);
 xlim([L1.quadro(1) L1.quadro(end)]);
-eixo_estilo(gca, 'Quadro (número do arquivo)', 'DP espacial (°C)', 'Desvio-padrão dentro do quadro');
+eixo_estilo(gca, rot_quadro, 'DP espacial (°C)', 'Desvio-padrão dentro do quadro');
 fig_salvar(h, fullfile(pasta_saida, 'lote1_residuos.png'));
 R.fig.lote1_residuos = 'lote1_residuos.png';
 
@@ -179,7 +199,7 @@ hl = [plot(L2.quadro, L2.tmax, 'color', C.lab), plot(L2.quadro, L2.tmed, 'color'
 hold off;
 xlim([L2.quadro(1) L2.quadro(end)]);
 legend(hl, {'Máxima', 'Média', 'Mínima'}, 'location', 'east', 'box', 'off');
-eixo_estilo(gca, 'Quadro (número do arquivo)', 'Temperatura (°C)', 'Lote 2 — emissão externa e evento climático');
+eixo_estilo(gca, rot_quadro, 'Temperatura (°C)', 'Lote 2 — emissão externa e evento climático');
 fig_salvar(h, fullfile(pasta_saida, 'lote2_series.png'));
 R.fig.lote2_series = 'lote2_series.png';
 
@@ -194,7 +214,7 @@ subplot(2, 1, 2);
 sombrear_faixas(cfg.fases, [3 5.4], C, false);
 hold on; plot(L2.quadro, L2.amp, 'color', C.pro); hold off;
 xlim([L2.quadro(1) L2.quadro(end)]);
-eixo_estilo(gca, 'Quadro (número do arquivo)', 'Amplitude (°C)', 'Amplitude (máxima − mínima) dentro do quadro');
+eixo_estilo(gca, rot_quadro, 'Amplitude (°C)', 'Amplitude (máxima − mínima) dentro do quadro');
 fig_salvar(h, fullfile(pasta_saida, 'lote2_contraste.png'));
 R.fig.lote2_contraste = 'lote2_contraste.png';
 
@@ -203,9 +223,9 @@ R.resumo = ['Câmera dentro da cabine fechada, sem fonte de IR (lote 1), e com e
             'durante um evento climático (lote 2).'];
 R.destaques = { ...
   'Deriva da média, lote 1',        [fmt(delta.tmed, 2, true) ' °C'];
-  'Inclinação no trecho final',     [fmt(tfin.tmed.b, 4) ' °C/quadro'];
+  'Inclinação no trecho final',     [fmt(tfin.tmed.b * 60 / dt, 2) ' °C/h'];
   'Amplitude após a perturbação',   [fmt(dp_.amp, 0, true) '%']};
 
-printf('Lote 1: Tmed %+.2f °C (Tmax %+.2f, Tmin %+.2f); trecho final %.4f [%.4f; %.4f] °C/quadro\n', ...
-       delta.tmed, delta.tmax, delta.tmin, tfin.tmed.b, tfin.tmed.ic);
+printf('Lote 1: Tmed %+.2f °C (Tmax %+.2f, Tmin %+.2f); trecho final %.4f [%.4f; %.4f] °C/%s\n', ...
+       delta.tmed, delta.tmax, delta.tmin, tfin.tmed.b, tfin.tmed.ic, un);
 printf('Lote 2 (depois - antes): Tmax %+.2f, Tmin %+.2f, DP %+.2f, Amp %+.2f °C\n', dd.tmax, dd.tmin, dd.dp, dd.amp);
