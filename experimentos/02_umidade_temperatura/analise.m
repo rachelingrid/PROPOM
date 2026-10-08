@@ -17,6 +17,11 @@ cfg.cenarios = struct( ...
 cfg.duracao_min = 2880;      % 48 h
 cfg.banda_min   = [10 120];  % faixa de períodos atribuída ao ciclo do compressor (min)
 cfg.nseg_min    = 1440;      % segmento do Welch: 24 h, janela de Hann, 50% de sobreposição
+
+% Dessecante: sílica gel doméstica colocada dentro da cabine para reduzir e manter baixa a UR interna
+cfg.dessecante   = '2026-06-09 19:32';   % instante da introdução (degrau visível no registro do PRO)
+cfg.des_ajuste_h = 48;                   % horas após a introdução usadas no ajuste exponencial
+cfg.des_plato_h  = [36 48];              % intervalo (h após a introdução) usado como nível alcançado
 % ==========================================================================
 
 C = cores_propom();
@@ -62,6 +67,51 @@ for s = 1:nc
            cen.sigla, gv{v}, r.dp, r.rms, r.aten, pka, r.ciclo, r.W.r, r.W.r_rb, r.W.n_ef, r.W.p_aj);
   end
 end
+
+% ============================================================ DESSECANTE ==
+td  = datenum(cfg.dessecante, 'yyyy-mm-dd HH:MM');
+i0  = find(round(tp * 1440) == round(td * 1440));
+th_p = (tp - td) * 24;                         % horas desde a introdução (PRO)
+th_l = (tl - td) * 24;                         % idem (LAB)
+UAp = umidade_absoluta(Tp, Up);   UAl = umidade_absoluta(Tl, Ul);
+m_antes = th_p >= -6 & th_p < 0;
+m_plato = th_p >= cfg.des_plato_h(1) & th_p < cfg.des_plato_h(2);
+m_plab  = th_l >= cfg.des_plato_h(1) & th_l < cfg.des_plato_h(2);
+m_aj    = th_p >= 1/60 & th_p <= cfg.des_ajuste_h;
+Ed = ajuste_exponencial(th_p(m_aj), Up(m_aj));
+des.ur_antes  = mean(Up(m_antes));   des.ua_antes = mean(UAp(m_antes));   des.t_antes = mean(Tp(m_antes));
+des.ur_plato  = mean(Up(m_plato));   des.ua_plato = mean(UAp(m_plato));   des.t_plato = mean(Tp(m_plato));
+des.degrau    = mean(Up(i0:i0+9)) - Up(i0 - 1);
+des.ur_fim    = mean(Up(th_p > th_p(end) - 6));
+des.ua_lab    = mean(UAl(m_plab));   des.ur_lab = mean(Ul(m_plab));
+printf('Dessecante: UR %.1f -> %.1f %% (degrau %.1f; tau %.1f h; UR_inf %.1f); UA %.1f -> %.1f g/m3; LAB UA %.1f\n', ...
+       des.ur_antes, des.ur_plato, des.degrau, Ed.tau, Ed.tinf, des.ua_antes, des.ua_plato, des.ua_lab);
+
+R.val.des_data    = datestr(td, 'dd/mm/yyyy, HH:MM');
+R.val.des_ur_antes = fmt(des.ur_antes, 1);
+R.val.des_ur_plato = fmt(des.ur_plato, 1);
+R.val.des_degrau  = fmt(des.degrau, 1, true);
+R.val.des_tau     = fmt(Ed.tau, 1);
+R.val.des_urinf   = fmt(Ed.tinf, 1);
+R.val.des_r2      = fmt(Ed.r2, 3);
+R.val.des_aj_h    = sprintf('%d', cfg.des_ajuste_h);
+R.val.des_plato   = sprintf('%d–%d h', cfg.des_plato_h);
+R.val.des_ua_antes = fmt(des.ua_antes, 1);
+R.val.des_ua_plato = fmt(des.ua_plato, 1);
+R.val.des_ua_pct  = fmt(100 * (des.ua_plato - des.ua_antes) / des.ua_antes, 0, true);
+R.val.des_t_antes = fmt(des.t_antes, 1);
+R.val.des_t_plato = fmt(des.t_plato, 1);
+R.val.des_ua_lab  = fmt(des.ua_lab, 1);
+R.val.des_ur_lab  = fmt(des.ur_lab, 1);
+R.val.des_ur_fim  = fmt(des.ur_fim, 1);
+R.val.des_fim_data = datestr(tp(end), 'dd/mm');
+
+R.tab.dessecante = html_tabela( ...
+  {'Grandeza (PRO, dentro da cabine)', '6 h antes', sprintf('%d–%d h depois', cfg.des_plato_h), 'Variação'}, ...
+  {'Umidade relativa (%)', fmt(des.ur_antes, 1), fmt(des.ur_plato, 1), fmt(des.ur_plato - des.ur_antes, 1, true); ...
+   'Umidade absoluta (g/m³)', fmt(des.ua_antes, 1), fmt(des.ua_plato, 1), fmt(des.ua_plato - des.ua_antes, 1, true); ...
+   'Temperatura (°C)', fmt(des.t_antes, 1), fmt(des.t_plato, 1), fmt(des.t_plato - des.t_antes, 1, true)}, ...
+  'Umidade absoluta pela fórmula de Magnus (coeficientes WMO), a partir da temperatura e da UR de cada minuto.');
 
 % ================================================================ TABELAS ==
 rotc = @(s) sprintf('<span class="sigla">%s</span> %s', cfg.cenarios(s).sigla, cfg.cenarios(s).nome);
@@ -154,6 +204,10 @@ for v = 1:2
   end
   text(tl(end) + 0.3, ya_, 'LAB', 'color', C.lab, 'fontweight', 'bold', 'verticalalignment', 'middle');
   text(tp(end) + 0.3, yb_, 'PRO', 'color', C.pro, 'fontweight', 'bold', 'verticalalignment', 'middle');
+  if v == 2                                    % marca a introdução do dessecante
+    hold on;  plot([td td], yl_, ':', 'color', C.sec, 'linewidth', 1);  hold off;
+    text(td + 0.3, yl_(1) + 0.08 * diff(yl_), 'sílica gel', 'color', C.sec, 'fontsize', 8);
+  end
   if v == 1
     eixo_estilo(gca, '', 'Temperatura (°C)', 'Registro completo — LAB (laboratório) e PRO (cabine); janelas de 48 h sombreadas');
   else
@@ -162,6 +216,34 @@ for v = 1:2
 end
 fig_salvar(h, fullfile(pasta_saida, 'visao_geral.png'));
 R.fig.visao_geral = 'visao_geral.png';
+
+% Introdução do dessecante
+h = fig_nova(8, 4.6);
+xl_ = [-24 96];
+for v = 1:2
+  subplot(2, 1, v);
+  if v == 1, ya = Ul; yb = Up; rot = 'Umidade relativa (%)'; else, ya = UAl; yb = UAp; rot = 'Umidade absoluta (g/m³)'; end
+  mlv = th_l >= xl_(1) & th_l <= xl_(2);  mpv = th_p >= xl_(1) & th_p <= xl_(2);
+  [xa, ya2] = quebrar_lacunas(tl(mlv), ya(mlv));  xa = (xa - td) * 24;
+  hold on;
+  hl = [plot(xa, ya2, 'color', C.lab, 'linewidth', 0.6), plot(th_p(mpv), yb(mpv), 'color', C.pro, 'linewidth', 1)];
+  if v == 1
+    plot(th_p(m_aj), Ed.yhat, '--', 'color', C.ajuste, 'linewidth', 1);
+  end
+  yl_ = get(gca, 'ylim');
+  plot([0 0], yl_, ':', 'color', C.sec, 'linewidth', 1);
+  hold off;
+  ylim(yl_);  xlim(xl_);  set(gca, 'xtick', -24:12:96);
+  if v == 1
+    text(1.5, yl_(2) - 0.06 * diff(yl_), 'sílica gel colocada na cabine', 'color', C.sec, 'fontsize', 8, 'verticalalignment', 'top');
+    legend(hl, {'LAB', 'PRO'}, 'location', 'southwest', 'box', 'off', 'orientation', 'horizontal');
+    eixo_estilo(gca, '', rot, sprintf('Dessecante na cabine — %s', datestr(td, 'dd/mm/yyyy HH:MM')));
+  else
+    eixo_estilo(gca, 'Horas desde a introdução do dessecante', rot, '');
+  end
+end
+fig_salvar(h, fullfile(pasta_saida, 'dessecante.png'));
+R.fig.dessecante = 'dessecante.png';
 
 % Por cenário: séries e espectros
 for s = 1:nc

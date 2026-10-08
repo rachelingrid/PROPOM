@@ -11,14 +11,15 @@ ciclo do compressor chega ao interior da cabine.</p>
     <span class="sigla">SAR</span> sem ar-condicionado · <span class="sigla">DRY</span> modo DRY ·
     <span class="sigla">COL</span> modo COOL · <span class="sigla">AR</span> ligado, modo não definido.</dd></div>
   <div><dt>Integridade</dt><dd>{{val:integridade}}</dd></div>
+  <div><dt>Dessecante</dt><dd>Em {{val:des_data}}, um desumidificador doméstico de sílica gel foi colocado dentro da cabine
+    para observar a variação da umidade interna e verificar se ela pode ser mantida mais baixa. A janela
+    <span class="sigla">COL</span> é posterior a essa intervenção; as demais, anteriores.</dd></div>
 </dl>
 
-{{fig:visao_geral|Registros completos dos dois registradores, com as quatro janelas analisadas.}}
+{{fig:visao_geral|Registros completos dos dois registradores, com as quatro janelas analisadas. A linha pontilhada marca a introdução da sílica gel na cabine.}}
 
-<p class="aviso">A partir de cerca de 09/06, a umidade dentro da cabine cai de ~70% para ~51% e permanece nesse nível, enquanto
-a do laboratório sobe e passa a oscilar mais. A mudança coincide com o fim da lacuna do registrador LAB, e sua causa não está
-registrada nos arquivos. A janela <span class="sigla">COL</span> fica depois dessa mudança, o que afeta a comparação de nível
-(não a de oscilação) nesse cenário.</p>
+<p>A queda da umidade relativa dentro da cabine a partir de 09/06 é efeito do dessecante, analisado em seção própria
+<a href="#dessecante">mais abaixo</a>.</p>
 </section>
 
 <section>
@@ -57,6 +58,35 @@ desvio-padrão total da temperatura no laboratório é maior no COOL ({{val:col_
 essa diferença vem das variações lentas, ao longo do dia, e não do ciclo do compressor.</p>
 </section>
 
+<section id="dessecante">
+<h2>Dessecante de sílica gel na cabine</h2>
+<p>Para verificar se a umidade interna pode ser mantida mais baixa, um desumidificador doméstico de sílica gel foi colocado
+dentro da cabine em {{val:des_data}}. No registro do PRO há um degrau imediato de {{val:des_degrau}} pontos de UR no minuto da
+introdução, compatível com a troca de ar na abertura da cabine. A partir daí, a umidade decai de forma exponencial, à medida
+que a sílica adsorve o vapor do ar interno.</p>
+
+{{fig:dessecante|Umidade relativa (acima) e absoluta (abaixo) de 24 h antes a 96 h depois da introdução do dessecante. Tracejado: exponencial ajustada às primeiras {{val:des_aj_h}} h do PRO.}}
+
+<p>A UR interna passou de {{val:des_ur_antes}}% nas 6 h anteriores para {{val:des_ur_plato}}% entre {{val:des_plato}} depois.
+O ajuste exponencial nas primeiras {{val:des_aj_h}} h dá constante de tempo de <strong>{{val:des_tau}} h</strong> e nível
+assintótico de {{val:des_urinf}}% (R² = {{val:des_r2}}). Até o fim do registro ({{val:des_fim_data}}), a UR continuou caindo
+lentamente, chegando a {{val:des_ur_fim}}% nas últimas 6 h.</p>
+
+{{tab:dessecante}}
+
+<p>A redução é de vapor, e não um efeito da temperatura. A <strong>umidade absoluta</strong> dentro da cabine caiu de
+{{val:des_ua_antes}} para {{val:des_ua_plato}} g/m³ ({{val:des_ua_pct}}%), com a temperatura praticamente estável
+({{val:des_t_antes}} °C → {{val:des_t_plato}} °C). No mesmo intervalo, o laboratório estava em {{val:des_ua_lab}} g/m³
+({{val:des_ur_lab}}% de UR): a cabine passou a manter um conteúdo de vapor menor que o do ambiente.</p>
+
+<p>A cabine não é hermética. Quando a umidade absoluta do laboratório sobe (entre ~14 e ~22 h após a introdução), a da cabine
+também sobe, com amplitude menor e atraso. A sílica reduz o nível de vapor, mas a troca lenta com o ambiente continua.</p>
+
+<p><strong>Efeito sobre a estabilidade.</strong> A janela <span class="sigla">COL</span>, registrada com o dessecante presente,
+teve atenuação da oscilação de UR de {{val:ur_aten_col}}%, a mesma ordem das janelas sem dessecante (DRY, {{val:ur_aten_dry}}%).
+Nesse ensaio, o dessecante baixou o nível de umidade sem prejudicar a atenuação do ciclo do compressor.</p>
+</section>
+
 <section>
 <h2>Séries e espectros por cenário</h2>
 <h3><span class="sigla">SAR</span> Sem ar-condicionado</h3>
@@ -68,7 +98,7 @@ essa diferença vem das variações lentas, ao longo do dia, e não do ciclo do 
 {{fig:espectro_DRY|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
 
 <h3><span class="sigla">COL</span> Modo COOL</h3>
-{{fig:serie_COL|Modo COOL: ciclos regulares de umidade no laboratório. O nível mais baixo de UR na cabine é posterior à mudança de 09/06.}}
+{{fig:serie_COL|Modo COOL: ciclos regulares de umidade no laboratório. A UR mais baixa na cabine se deve ao dessecante de sílica gel, presente desde 09/06.}}
 {{fig:espectro_COL|Densidade espectral de potência (Welch). A faixa sombreada é a banda do compressor.}}
 
 <h3><span class="sigla">AR</span> Ligado, modo não definido</h3>
@@ -86,8 +116,8 @@ isso, a tabela traz o p nominal e o p ajustado, e a interpretação se apoia nos
 {{tab:nivel}}
 
 <p>As diferenças de nível entre PRO e LAB não são atribuídas à cabine: incluem uma eventual diferença de calibração entre os
-dois registradores, que não foi medida lado a lado, e, no COOL, a mudança de condição da cabine a partir de 09/06 (mediana PRO −
-LAB de {{val:col_dif_ur}} pontos de UR). Na janela SAR, as duas curvas de UR se encontram e coincidem por várias horas, o que
+dois registradores, que não foi medida lado a lado, e, no COOL, o dessecante de sílica gel presente na cabine (mediana PRO −
+LAB de {{val:col_dif_ur}} pontos de UR, diferença produzida deliberadamente). Na janela SAR, as duas curvas de UR se encontram e coincidem por várias horas, o que
 sugere diferença de calibração pequena — mas não substitui a verificação. O teste de Levene (Brown–Forsythe) também não é
 ajustado para autocorrelação; a medida de estabilidade adotada é a atenuação espectral da seção anterior.</p>
 
@@ -115,7 +145,8 @@ questão principal deixa de ser a forma da distribuição e passa a ser a depend
 <h2>Limitações</h2>
 <ul>
   <li>Sem medição dos dois registradores lado a lado: diferenças de nível entre LAB e PRO incluem a calibração relativa.</li>
-  <li>A mudança na UR da cabine a partir de 09/06 não tem causa registrada.</li>
+  <li>O efeito do dessecante foi observado numa única introdução. A massa de sílica e seu grau de saturação ao longo do tempo
+  não estão registrados nos arquivos, e a taxa de queda e o nível alcançado dependem dessas condições.</li>
   <li>A banda do compressor ({{val:banda}}) e o segmento do Welch ({{val:nseg}} min) são escolhas configuráveis no início de
   <code>analise.m</code>.</li>
   <li>O n efetivo usa a aproximação AR(1); para séries com oscilação periódica, o valor é apenas indicativo.</li>
