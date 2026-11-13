@@ -33,16 +33,22 @@ function processar_coleta(codigo, opcoes)
                 't', num2cell(cellfun(@parse_datahora, lc(:,3))));
 
   % ---------- 1. associação imagens x capturas ----------
-  arqs = listar_arquivos(pC, {'*.csv', '*.CSV'});
-  arqs = arqs(~strcmpi(arqs, 'protocolo.csv'));
+  jpgs = listar_arquivos(pJ, {'*.jpg', '*.JPG', '*.jpeg', '*.JPEG'});
+  arqs = csvs_termicos(pC);
+  if isempty(arqs) && ~isempty(jpgs)
+    % sem CSVs: converte os JPGs de TERMOJPG com o Conversor JPG-CSV UTi320E
+    converter_jpgs(P, pJ, jpgs, pC, pR);
+    arqs = csvs_termicos(pC);
+  end
   if numel(arqs) < n
-    error('TERMOCSV\\%s tem %d CSVs; foram registradas %d capturas.', codigo, numel(arqs), n);
+    error(['TERMOCSV\\%s tem %d CSVs; foram registradas %d capturas.\n' ...
+           'Coloque os JPGs em TERMOJPG\\%s (conversão automática) ou os CSVs convertidos em TERMOCSV\\%s.'], ...
+          codigo, numel(arqs), n, codigo, codigo);
   end
   if numel(arqs) > n
     printf('  TERMOCSV\\%s tem %d CSVs; usarei os %d ÚLTIMOS pela ordem do nome.\n', codigo, numel(arqs), n);
     arqs = arqs(end-n+1:end);
   end
-  jpgs = listar_arquivos(pJ, {'*.jpg', '*.JPG', '*.jpeg', '*.JPEG'});
   if numel(jpgs) ~= n
     printf('  AVISO: TERMOJPG\\%s tem %d JPGs para %d capturas.\n', codigo, numel(jpgs), n);
   end
@@ -128,6 +134,33 @@ function processar_coleta(codigo, opcoes)
 
   printf('\n================ %s PROCESSADA ================\n', codigo);
   if completo_ok && isguirunning(), try, open(rel.completo); catch, end, end
+end
+
+function a = csvs_termicos(pasta)
+% CSVs de matriz térmica (exclui protocolo e metadados do conversor)
+  a = listar_arquivos(pasta, {'*.csv', '*.CSV'});
+  a = a(~ismember(lower(a), {'protocolo.csv', 'metadados_conversao.csv'}));
+end
+
+function converter_jpgs(P, pJ, jpgs, pC, pR)
+  dir_conv = localizar_conversor(P);
+  if isempty(dir_conv)
+    error(['Conversor JPG-CSV UTi320E não encontrado.\n' ...
+           'Opção 1: baixe o repositório conversor-jpg-csv-uti320e e descompacte-o na MESMA pasta onde está o PROPOM.\n' ...
+           'Opção 2: converta na página https://rachelingrid.github.io/conversor-jpg-csv-uti320e/ ' ...
+           'e salve os CSVs em %s'], pC);
+  end
+  printf('  Convertendo %d JPGs com o conversor em %s\n', numel(jpgs), dir_conv);
+  addpath(dir_conv);
+  limpar = onCleanup(@() rmpath(dir_conv));
+  pasta_conv = uti320e_jpg2csv(fullfile(pJ, jpgs), fullfile(pR, 'conversao'));
+  conv = listar_arquivos(pasta_conv, {'*.CSV', '*.csv'});
+  conv = conv(~strcmpi(conv, 'metadados_conversao.csv'));
+  for k = 1:numel(conv)
+    movefile(fullfile(pasta_conv, conv{k}), fullfile(pC, conv{k}));
+  end
+  copyfile(fullfile(pasta_conv, 'metadados_conversao.csv'), fullfile(pC, 'metadados_conversao.csv'));
+  printf('  %d CSVs gravados em %s (metadados da câmera em metadados_conversao.csv)\n', numel(conv), pC);
 end
 
 function c = escolher_coleta(P)

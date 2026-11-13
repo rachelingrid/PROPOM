@@ -2,6 +2,41 @@
 
 Roda offline, em Octave puro (sem pacotes extras e sem Python). Use a interface gráfica do Octave para ter janelas de botões e a abertura automática do PDF.
 
+## Usar em um computador novo
+
+**1. Instalar o GNU Octave (versão 8 ou mais recente)**
+- Baixe em https://octave.org/download.
+- Sem permissão de administrador, use a versão **ZIP (portátil)** do Windows: descompacte e abra pelo `octave.vbs`.
+
+**2. Baixar os dois repositórios.** Em cada página, clique em **Code → Download ZIP**:
+- https://github.com/rachelingrid/PROPOM
+- https://github.com/rachelingrid/conversor-jpg-csv-uti320e
+
+Descompacte os dois **lado a lado, na mesma pasta**:
+
+```
+C:\ProPOM\
+   PROPOM-main\
+   conversor-jpg-csv-uti320e-main\
+```
+
+**3. Executar**
+- Abra o Octave (interface gráfica).
+- No navegador de arquivos do Octave, entre em `PROPOM-main\coleta`, ou digite `cd C:\ProPOM\PROPOM-main\coleta`.
+- Digite `propom`.
+
+**4. Conferir a instalação (opcional)**
+
+```octave
+propom_roi('dados', 'saida');  testes_propom_roi('dados', 'saida')
+```
+
+O resultado esperado é "18 testes aprovados".
+
+Nenhum desses passos usa a internet depois do download.
+
+**Onde ficam os dados.** As coletas ficam em `coleta\PROPOM_DADOS`, **no computador onde rodou**. Para levar os dados com você, aponte `P.raiz` em `config_propom.m` para um pendrive ou HD externo, por exemplo `'E:\PROPOM_DADOS'`. Ao trocar de computador, basta usar o mesmo pendrive.
+
 ## Uso
 
 No Octave, dentro desta pasta, digite:
@@ -25,8 +60,8 @@ Para mudar o local, edite `P.raiz` em `config_propom.m`, por exemplo para `C:\Pr
 | Pasta | O que vai nela | Quem coloca |
 |---|---|---|
 | `TEMUR` | CSVs exportados do termo-higrômetro (Govee). Pode acumular vários arquivos: o programa junta todos e ordena por horário. | você, **depois** da coleta |
-| `TERMOCSV\<código>` | CSVs das imagens térmicas da coleta | você, depois da captura |
 | `TERMOJPG\<código>` | JPGs capturados pela câmera | você, depois da captura |
+| `TERMOCSV\<código>` | CSVs das imagens térmicas. **São gerados automaticamente a partir dos JPGs** se a pasta estiver vazia. | programa (ou você) |
 | `ANAMNESE\QUESTIONARIOS` | CSVs baixados do Mentaltracking | você, antes da coleta |
 | `ANAMNESE\<código>` | `registro.csv` (checklist, biometria, sinais vitais, horários), `capturas.csv`, `questionario.csv` | programa |
 | `ANAMNESE\identificacao_PRIVADO.csv` | código × nome × nascimento × sexo | programa |
@@ -51,17 +86,21 @@ O registro é gravado a cada etapa. Se algo travar no meio, o que já foi digita
 
 ## Processamento: o que acontece
 
-1. Os CSVs de `TERMOCSV\<código>` são associados às capturas pela ordem do nome do arquivo, e o programa pede sua confirmação.
-2. As ROIs 3 × 3 são processadas para **OD e OE**.
-3. UR e temperatura são calculadas **no momento de cada imagem**, como a média da leitura imediatamente anterior e da posterior. Exemplo: 10:00 → 40 % e 10:10 → 41 %; uma imagem às 10:06 fica com 40,5 %.
+1. **Conversão JPG → CSV.** Se `TERMOCSV\<código>` estiver vazia, os JPGs de `TERMOJPG\<código>` são convertidos pelo **Conversor JPG-CSV UTi320E** (`uti320e_jpg2csv`). O CSV gerado é idêntico ao do software da UNI-T.
+   - O conversor é procurado na pasta `conversor-jpg-csv-uti320e*` ao lado do PROPOM. Para usar outro local, preencha `P.pasta_conversor` em `config_propom.m`.
+   - Os parâmetros gravados pela câmera (emissividade, distância, firmware) ficam em `TERMOCSV\<código>\metadados_conversao.csv`.
+   - Alternativa: converta na página do conversor e salve os CSVs em `TERMOCSV\<código>`.
+2. **Associação.** Os CSVs são associados às capturas pela ordem do nome do arquivo, e o programa pede sua confirmação.
+3. As ROIs 3 × 3 são processadas para **OD e OE**.
+4. UR e temperatura são calculadas **no momento de cada imagem**, como a média da leitura imediatamente anterior e da posterior. Exemplo: 10:00 → 40 % e 10:10 → 41 %; uma imagem às 10:06 fica com 40,5 %.
    - Para usar interpolação linear, mude `P.temur_metodo` para `'linear'`.
    - Sem leitura posterior, a célula fica em branco; o programa não extrapola. Por isso, exporte o CSV do Govee **depois** da coleta.
-4. Relatórios em `RESULTADOS\<código>\`:
+5. Relatórios em `RESULTADOS\<código>\`:
    - `relatorio_parcial_fisiologico_<código>.pdf`: checklist, biometria, sinais vitais e questionário.
    - `relatorio_parcial_ambiental_<código>.pdf`: checagem inicial, gráfico de UR e T com as faixas e o instante de cada imagem, e o valor no momento de cada imagem.
    - `relatorio_parcial_termico_<código>.pdf`: imagens com a ROI marcada e as 7 medidas da ROI para OD e OE (média ± DP das 5 imagens de cada condição).
    - `relatorio_completo_<código>.pdf`: as três páginas acima juntas. Usa o Ghostscript que já vem com o Octave para Windows.
-5. As tabelas consolidadas são reconstruídas. Reprocessar uma coleta não duplica linhas.
+6. As tabelas consolidadas são reconstruídas. Reprocessar uma coleta não duplica linhas.
 
 ## Lateralidade
 

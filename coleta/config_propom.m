@@ -12,6 +12,11 @@ function P = config_propom()
   %   RESULTADOS processamento, relatórios e tabelas consolidadas
   P.raiz = fullfile(fileparts(mfilename('fullpath')), 'PROPOM_DADOS');
 
+  % Conversor JPG-CSV UTi320E (repositório conversor-jpg-csv-uti320e).
+  % Vazio = procura automaticamente a pasta 'conversor-jpg-csv-uti320e*'
+  % ao lado da pasta do PROPOM. Ou informe o caminho, ex.: 'D:\conversor-jpg-csv-uti320e-main'
+  P.pasta_conversor = '';
+
   % ================= LATERALIDADE =================
   % O participante fica DE FRENTE para a câmera: o olho DIREITO (OD) aparece
   % no lado ESQUERDO da imagem e o olho ESQUERDO (OE) no lado DIREITO.
