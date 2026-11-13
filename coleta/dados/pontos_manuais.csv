@@ -1,0 +1,3 @@
+# Correção manual: preencha só os pontos a substituir (linha e coluna nativas, 1-based)
+# OD = endocanto do olho direito do participante (aparece à ESQUERDA da imagem)
+arquivo,N_lin,N_col,OD_lin,OD_col,OE_lin,OE_col

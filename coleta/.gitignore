@@ -1,0 +1,5 @@
+# Dados de participantes NUNCA vão para o GitHub
+PROPOM_DADOS/
+coletas/
+saida/
+*.pdf
