@@ -15,6 +15,14 @@ roda as análises do zero e publica a página com os gráficos, as tabelas e o c
 | `experimentos/01_deriva_termica` | Deriva térmica do termógrafo dentro da cabine (lotes 1 e 2) |
 | `experimentos/02_umidade_temperatura` | Temperatura e umidade: laboratório × cabine em quatro regimes do ar-condicionado |
 
+## Coleta e processamento (`coleta/`)
+
+Roteiro de coleta com a cabine e processamento das ROIs periorbitais (OD/OE): registro de ambiente,
+checklist, biometria, sinais vitais e questionário; seleção automática da ROI 3 × 3; UR e temperatura
+no momento de cada imagem; relatórios parciais (fisiológico, ambiental, térmico) e completo em PDF.
+Roda localmente no Octave (`cd coleta` e depois `propom`). Instruções em [coleta/README.md](coleta/README.md).
+Os dados de participantes ficam em `coleta/PROPOM_DADOS/`, que **não** é enviado ao GitHub.
+
 ## Rodar no próprio computador (offline)
 
 1. Instale o [GNU Octave](https://octave.org) (versão 8 ou mais recente).
@@ -44,6 +52,7 @@ executar_tudo.m        roda tudo e gera a pasta site/
 lib/                   funções comuns (estatística, gráficos, geração da página)
 experimentos/NN_nome/  analise.m, pagina.html, dados/ — um por experimento
 recursos/              estilo da página e texto da página inicial
+coleta/                roteiro de coleta, processamento das ROIs e relatórios (roda localmente)
 .github/workflows/     automação: instala o Octave, roda e publica
 ```
 
